@@ -19,6 +19,4 @@ router.patch("/password",
     updatePassword
   )
 
-
-
 export default router;
