@@ -3,6 +3,8 @@ import cors from "cors"
 import helmet from "helmet";
 import morgan from "morgan";
 import { dbConnection } from "./mongo.js";
+import authRoutes from '../src/auth/auth.routes.js'
+import accountRoutes from '../src/accounts/account.routes.js'
 
 const middlewares = (app)=>{
     app.use(express.urlencoded({extended: false})) //Para los forms
@@ -10,6 +12,12 @@ const middlewares = (app)=>{
     app.use(cors()) // dominios que pueden acceder
     app.use(helmet()) // Es para la seguridad
     app.use(morgan('dev')) // Muestra mensajes para nuestras rutas (POST,PUT etc)
+}
+
+const routes = (app) => {
+    app.use("/bankSystem/v1/auth", authRoutes);
+    app.use("/bankSystem/v1/account", accountRoutes);
+
 }
 
 const conectarDb = async () => {

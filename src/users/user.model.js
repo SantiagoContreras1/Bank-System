@@ -1,55 +1,54 @@
-import { Schema, model } from "mongoose"
-import mongooseAutoPopulate from "mongoose-autopopulate"
+import { Schema, model } from "mongoose";
+import mongooseAutoPopulate from "mongoose-autopopulate";
 
 export const UserSchema = Schema({
-    name:{
+    name: {
         type: String
     },
-    username:{
+    username: {
         type: String
     },
-    dpi:{
-        type: number
+    dpi: {
+        type: Number  // <-- Corregido
     },
-    address:{
+    address: {
         type: String
     },
-    phone:{
-        type: number
+    phone: {
+        type: Number  // <-- Corregido
     },
-    email:{
+    email: {
         type: String,
         required: [true, 'El email es obligatorio'],
         unique: true,
     },
-    password:{
+    password: {
         type: String,
         required: [true, 'La contraseña es obligatoria'],
         minlength: [6, 'La contraseña debe tener al menos 6 caracteres']
     },
-    ingresosmensuales:{
-        type: number
+    ingresosmensuales: {
+        type: Number  // <-- Corregido
     },
-    role:{
+    role: {
         type: String,
         enum: ['USER_ROLE', 'ADMIN_ROLE'],
         default: 'USER_ROLE'
     },
     createdAt: {
-      type: Date,
-      default: Date.now
+        type: Date,
+        default: Date.now
     },
     status: {
         type: Boolean,
-        default: true,
+        default: true
     }
-    
-})
+});
 
-UserSchema.methods.toJSON = function() {
-    const {__v, password, ...user} = this.toObject();
+UserSchema.methods.toJSON = function () {
+    const { __v, password, ...user } = this.toObject();
     return user;
-}
+};
 
 UserSchema.plugin(mongooseAutoPopulate);
 

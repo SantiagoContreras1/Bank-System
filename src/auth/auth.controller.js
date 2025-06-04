@@ -1,15 +1,17 @@
 import User from "../users/user.model.js";
+import Account from "../accounts/account.model.js";
 import { hash } from "argon2";
-import { generarJWT } from "../helpers/generate-jwt.js";
+import { generarJWT } from "../helpers/generar-JWT.js";
 
 export const login = async (req, res) => {
   try {
     const user = req.user;
     const token = await generarJWT(user.id, user.role);
+
     return res.status(200).json({
       msg: "Successful login",
       userDetails: {
-        token: token,
+        token,
         uId: user.id,
         name: user.name,
         email: user.email,
@@ -28,19 +30,36 @@ export const login = async (req, res) => {
 export const register = async (req, res) => {
   try {
     const data = req.body;
+
     const encryptedPassword = await hash(data.password);
+
     const user = await User.create({
       name: data.name,
-      surname: data.surname,
+      username: data.username,
+      dpi: data.dpi,
+      address: data.address,
+      phone: data.phone,
       email: data.email,
       password: encryptedPassword,
-      role: "CLIENT_ROLE", 
+      monthlyIncome: data.monthlyIncome, // ← CAMBIO APLICADO
+      role: data.role || 'USER_ROLE',
     });
+
+    const account = await Account.create({
+      accountNo: Math.floor(Math.random() * 1000000000),
+      user: user._id,
+      balance: 0,
+      verify: false,
+    });
+
+    user.account = account._id;
+    await user.save();
 
     return res.status(200).json({
       message: "User registered successfully",
       userDetails: {
         user,
+        account,
       },
     });
   } catch (error) {
@@ -51,6 +70,7 @@ export const register = async (req, res) => {
         errors,
       });
     }
+
     return res.status(500).json({
       message: "User registration failed",
       error: error.message,
