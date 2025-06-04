@@ -23,7 +23,7 @@ export const validarJWT = async (req,res,next) => {
             })
         }
 
-        if (!user.estado) {
+        if (!user.status) {
             return res.status(401).json({
                 msg: "user no esta activo"
             })

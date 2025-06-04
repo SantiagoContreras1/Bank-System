@@ -6,9 +6,9 @@ const router = Router();
 
 router.get('/', getAccounts);
 
-router.get('/:id', getAccountById);
-
 router.get('/unverified/', validarAdmin, validarJWT, getUnverifiedAccounts);
+
+router.get('/:id', getAccountById);
 
 router.put('/:id', validarAdmin, validarJWT, updateAccountVerify);
 
