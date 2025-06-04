@@ -2,42 +2,34 @@ import { Schema, model } from "mongoose"
 import mongooseAutoPopulate from "mongoose-autopopulate"
 
 export const UserSchema = Schema({
-    nombre:{
+    name:{
         type: String
     },
-
     username:{
         type: String
     },
-
     dpi:{
         type: number
     },
-
-    direccion:{
+    address:{
         type: String
     },
-
     phone:{
         type: number
     },
-
     email:{
         type: String,
         required: [true, 'El email es obligatorio'],
         unique: true,
     },
-
     password:{
         type: String,
         required: [true, 'La contraseña es obligatoria'],
         minlength: [6, 'La contraseña debe tener al menos 6 caracteres']
     },
-
     ingresosmensuales:{
         type: number
     },
-
     role:{
         type: String,
         enum: ['USER_ROLE', 'ADMIN_ROLE'],
@@ -47,7 +39,7 @@ export const UserSchema = Schema({
       type: Date,
       default: Date.now
     },
-    estado: {
+    status: {
         type: Boolean,
         default: true,
     }
