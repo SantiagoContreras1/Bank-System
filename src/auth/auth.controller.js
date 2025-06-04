@@ -10,8 +10,8 @@ export const register = async (req, res) => {
     console.log("datos:", data);
 
     const user = await User.create({
-      name: data.name,
-      correo: data.correo,
+      nombre: data.nombre,
+      email: data.email,
       password: encryptedPassword,
     });
 
@@ -19,7 +19,7 @@ export const register = async (req, res) => {
       msg: "Usuario registrado correctamente",
       userDetails: {
         user: user.name,
-        email: user.correo,
+        email: user.email,
         role: user.role
       },
     });
@@ -32,12 +32,12 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  const { correo, password } = req.body;
+  const { email, password } = req.body;
 
   try {
-    console.log("email:", correo);
+    console.log("email:", email);
     console.log("password:", password);
-    const user = await User.findOne({ correo });
+    const user = await User.findOne({ email });
 
     if (!user) {
       return res.status(404).json({
@@ -65,8 +65,8 @@ export const login = async (req, res) => {
       msg: "Usuario logueado correctamente",
       user:{
         id: user.id,
-        name: user.name,
-        correo: user.correo,
+        nombre: user.nombre,
+        email: user.email,
         role: user.role,
       },
       token,

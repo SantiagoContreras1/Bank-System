@@ -12,46 +12,41 @@ export const UserSchema = Schema({
       unique: true,
     },
     dpi: {
-      type: String,
+      type: Number,
       required: true,
       unique: true,
     },
-    direccion: {
+    address: {
       type: String,
       required: true,
     },
-    celular: {
-      type: String,
+    phone: {
+      type: Number,
       required: true,
+      minlength: [8, 'El numero de celular tiene que tener 8 digitos']
     },
-    correo: {
+    email: {
       type: String,
-      required: true,
+      required: [true, 'El email es obligatorio'],
       unique: true,
     },
     password: {
-      type: String,
-      required: true,
+      required: [true, 'La contraseña es obligatoria'],
+      minlength: [6, 'La contraseña debe tener al menos 6 caracteres']
     },
     role: {
       type: String,
       enum: ["ADMIN_ROLE", "USER_ROLE"],
       default: "USER_ROLE",
     },
-    trabajo: {
+    work: {
       type: String,
     },
-    ingresos: {
+    ingresosmensuales: {
       type: Number,
       required: true,
       min: 100,
     },
-
-    account: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Account",
-    },
-
     favorites: [
       {
         account: {
@@ -64,6 +59,14 @@ export const UserSchema = Schema({
         },
       },
     ],
+    creatAt:{
+      type: Date,
+      default: Date.now
+    },
+    status:{
+      type: Boolean,
+      default: true
+    }
   },
   {
     timestamps: true,
