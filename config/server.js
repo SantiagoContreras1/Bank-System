@@ -29,8 +29,33 @@ export const initServer = ()=>{
         middlewares(app)
         conectarDb()
         app.listen(port)
+        crearAdmin();
         console.log(`Server running on port ${port}`)
     } catch (error) {
         console.log(`Server init failed ${error}`)
     }
 }
+
+export const crearAdmin = async () => {
+  try {
+    const existeAdmin = await User.findOne({ email: 'adminb@adminb.com' });
+
+    if (!existeAdmin) {
+      const hashedPass = await hash('ADMINB');
+
+      const adminUser = new User({
+        nombre: 'ADMINB',
+        email: 'adminb@adminb.com',
+        password: hashedPass,
+        role: 'ADMIN_ROLE' 
+      });
+
+      await adminUser.save();
+      console.log('Admin creado correctamente');
+    } else {
+      console.log('Admin ya existe');
+    }
+  } catch (error) {
+    console.log(`Error al crear admin: ${error}`);
+  }
+};
