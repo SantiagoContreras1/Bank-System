@@ -1,22 +1,20 @@
 import { Router } from "express";
-import { updateUser, updatePassword } from "./user.controller.js";
-import { checkRoleChange, validateCurrentPassword } from "../middlewares/validator-user.js";
+import { updateUser, updatePassword, getUsers, getUserById, deleteUser } from "./user.controller.js";
+import {
+  checkRoleChange,
+  validateCurrentPassword,
+  checkOwnAccount,
+} from "../middlewares/validator-user.js";
 import { validarJWT } from "../middlewares/validar-JWT.js";
+import { validarAdmin } from "../middlewares/validar-admin.js";
 
 const router = Router();
 
-router.put(
-    "/:id",
-    [
-        validarJWT,
-        checkRoleChange, 
-    ],
-    updateUser
-)
+router.get("/", validarJWT, validarAdmin, getUsers);
+router.get("/:userId", validarJWT, validarAdmin, getUserById);
+router.put("/:id", [validarJWT, checkRoleChange], updateUser);
 
-router.patch("/password",
-    validateCurrentPassword,
-    updatePassword
-  )
+router.delete("/:id", [validarJWT, validarAdmin, checkOwnAccount], deleteUser);
 
+router.patch("/password", validateCurrentPassword, updatePassword);
 export default router;

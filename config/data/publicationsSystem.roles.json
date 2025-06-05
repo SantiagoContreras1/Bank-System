@@ -1,6 +1,14 @@
+<<<<<<< HEAD
 [{
   "_id": {
     "$oid": "67bd6e903baacc0fe8da8764"
   },
   "role": "USER_ROLE"
+=======
+[{
+  "_id": {
+    "$oid": "67bd6e903baacc0fe8da8764"
+  },
+  "role": "USER_ROLE"
+>>>>>>> 7b08e367cf782e3bf58292c364726446add5f53f
 }]

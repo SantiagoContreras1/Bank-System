@@ -31,6 +31,7 @@ export const UserSchema = Schema({
       unique: true,
     },
     password: {
+      type: String,
       required: [true, 'La contraseña es obligatoria'],
       minlength: [6, 'La contraseña debe tener al menos 6 caracteres']
     },
@@ -42,7 +43,7 @@ export const UserSchema = Schema({
     work: {
       type: String,
     },
-    ingresosmensuales: {
+    monthlyIncome: {
       type: Number,
       required: true,
       min: 100,
@@ -50,7 +51,7 @@ export const UserSchema = Schema({
     favorites: [
       {
         account: {
-          type: mongoose.Schema.Types.ObjectId,
+          type: Schema.Types.ObjectId,
           ref: "Account",
         },
         alias: {
