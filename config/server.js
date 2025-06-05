@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config(); 
+console.log("✅ API Key cargada:", process.env.CURRENCYFREAKS_API_KEY); // Verifica que la clave esté cargada
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -6,7 +9,9 @@ import { dbConnection } from "./mongo.js";
 import authRoutes from '../src/auth/auth.routes.js';
 import accountRoutes from '../src/accounts/account.routes.js';
 import userRoutes from '../src/users/user.routes.js';
-import User from '../src/users/user.model.js'; // ← IMPORTACIÓN NECESARIA
+import User from '../src/users/user.model.js';
+import balanceRoutes from '../src/balance/balance.route.js';
+
 import { hash } from "argon2";
 
 const middlewares = (app) => {
@@ -21,6 +26,8 @@ const routes = (app) => {
   app.use("/bankSystem/v1/auth", authRoutes);
   app.use("/bankSystem/v1/account", accountRoutes);
   app.use("/bankSystem/v1/user", userRoutes);
+  app.use("/bankSystem/v1/balance", balanceRoutes);
+
 };
 
 const conectarDb = async () => {

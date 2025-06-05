@@ -1,11 +1,11 @@
 import express from 'express';
-import { convertirBalancePorMoneda } from './balanceController';
+import { convertirBalancePorMoneda } from './balanceController.js';
 
 const router = express.Router();
 
-router.get('/convertir-balance/:accountNo/:moneda', convertirBalancePorMoneda);
+router.get('/:accountNo/:moneda', convertirBalancePorMoneda);
 
-// Ejemplos para realizar la peticion  
+// Ejemplos para realizar la peticion
 // GET /convertir-balance/12345678/USD
 //GET /convertir-balance/12345678/JPY
 
