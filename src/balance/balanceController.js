@@ -43,7 +43,6 @@ export const convertirBalancePorMoneda = async (req, res) => {
 
     const rates = response.data.rates;
 
-    // Validar que tengamos tasa USD -> GTQ y USD -> monedaDestino
     const rateUSDToGTQ = parseFloat(rates['GTQ']);
     const rateUSDToDestino = parseFloat(rates[monedaDestino]);
 
@@ -53,17 +52,17 @@ export const convertirBalancePorMoneda = async (req, res) => {
       });
     }
 
-    // Convertir de GTQ a USD (invirtiendo tasa USD -> GTQ)
-    const balanceUSD = balanceGTQ / rateUSDToGTQ;
+    // Calcular tasa directa de GTQ a monedaDestino
+    const tasaGTQaDestino = rateUSDToDestino / rateUSDToGTQ;
 
-    // Convertir de USD a moneda destino
-    const balanceConvertido = (balanceUSD * rateUSDToDestino).toFixed(2);
+    // Calcular balance convertido directamente desde GTQ
+    const balanceConvertido = (balanceGTQ * tasaGTQaDestino).toFixed(2);
 
     return res.json({
       accountNo: cuenta.accountNo,
       balance_GTQ: balanceGTQ,
       monedaDestino,
-      tasa_de_Conversion: rateUSDToDestino,
+      tasa_de_Conversion: tasaGTQaDestino.toFixed(6),
       balanceConvertido
     });
 
