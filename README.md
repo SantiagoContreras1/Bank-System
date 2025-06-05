@@ -1,2 +1,2 @@
 # Bank-System
-System for online bank
+Sistema bancario en línea - Proyecto Final B1
