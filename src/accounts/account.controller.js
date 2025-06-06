@@ -4,8 +4,6 @@ import User from '../users/user.model.js';
 export const getAccounts = async (req, res) => {
   try {
     const accounts = await Account.find({ status: true })
-      .populate('user', 'username name dpi email phone address')
-      .select('accountNo balance verify status createdAt');
 
     res.status(200).json({
       success: true,
@@ -26,8 +24,6 @@ export const getAccountById = async (req, res) => {
   try {
     const { id } = req.params;
     const account = await Account.findById(id)
-      .populate('user', 'username name dpi email phone address')
-      .select('accountNo balance verify status createdAt');
 
     if (!account) {
       return res.status(404).json({
@@ -54,8 +50,6 @@ export const getAccountById = async (req, res) => {
 export const getUnverifiedAccounts = async (req, res) => {
   try {
     const accounts = await Account.find({ verify: false, status: true })
-      .populate('user', 'username name dpi email phone address')
-      .select('accountNo balance verify status createdAt');
 
     res.status(200).json({
       success: true,

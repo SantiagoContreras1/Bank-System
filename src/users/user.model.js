@@ -50,13 +50,15 @@ export const UserSchema = Schema({
     },
     account: {
       type: Schema.Types.ObjectId,
-      ref: "Account"
+      ref: "Account",
+      autopopulate: true
     },
     favorites: [
       {
         account: {
           type: Schema.Types.ObjectId,
           ref: "Account",
+          autopopulate: true
         },
         alias: {
           type: String,

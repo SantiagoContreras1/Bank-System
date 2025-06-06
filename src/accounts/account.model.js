@@ -12,6 +12,7 @@ const AccountSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+      autopopulate: true
     },
     balance: {
       type: Number,
