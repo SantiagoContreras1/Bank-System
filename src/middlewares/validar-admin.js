@@ -22,7 +22,7 @@ export const validarAdmin = async (req, res, next) => {
       });
     }
 
-    if (usuario.role !== 'ADMIN_ROLE' && usuario.role !== 'USER_ROLE') {
+    if (usuario.role !== 'ADMIN_ROLE') {
       return res.status(403).json({
         msg: 'No tiene privilegios de administrador'
       });

@@ -88,7 +88,8 @@ export const validateEmailExists = async (req, res, next) => {
 };
 
 export const validateCurrentPassword = async (req, res, next) => {
-  const userId = req.user._id
+  const userId = req.user
+  console.log(userId)
   const { currentPassword, password } = req.body;
 
   if (password && !currentPassword) {

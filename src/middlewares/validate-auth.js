@@ -3,24 +3,30 @@ import User from "../users/user.model.js"
 
 export const validateLoginUser = async (req, res, next) => {
     try {
+        const { email, username, password } = req.body;
 
-        const { email, password } = req.body;
+        // Buscar usuario por email o username
+        const user = await User.findOne({
+            $or: [
+                { email: email },
+                { username: username }
+            ]
+        });
 
-        const user = await User.findOne({ email });
         if (!user) {
             return res.status(400).json({
-                msg: 'Incorrect credentials, the email does not exist in the database.'
+                msg: 'Credenciales incorrectas, el email o username no existe en la base de datos.'
             });
         }
         if(!user.status){
             return res.status(400).json({
-                msg: 'The user does not exist in the database'
+                msg: 'El usuario no existe en la base de datos'
             });
         }
         const validPassword = await verify(user.password, password);
         if (!validPassword) {
             return res.status(400).json({
-                msg: 'The password is incorrect'
+                msg: 'La contraseña es incorrecta'
             });
         }
 
@@ -29,7 +35,7 @@ export const validateLoginUser = async (req, res, next) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            msg: "Internal server error",
+            msg: "Error interno del servidor",
             error: error.message
         });
     }

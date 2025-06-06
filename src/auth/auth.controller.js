@@ -4,10 +4,15 @@ import { hash, verify } from "argon2";
 import { generarJWT } from "../helpers/generar-JWT.js";
 import { faker } from "@faker-js/faker";
 export const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, username, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({
+      $or: [
+        { email: email },
+        { username: username }
+      ]
+    });
 
     if (!user) {
       return res.status(404).json({
@@ -50,7 +55,6 @@ export const login = async (req, res) => {
     });
   }
 };
-
 
 export const register = async (req, res) => {
   try {

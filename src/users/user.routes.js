@@ -16,5 +16,5 @@ router.put("/:id", [validarJWT, checkRoleChange], updateUser);
 
 router.delete("/:id", [validarJWT, validarAdmin, checkOwnAccount], deleteUser);
 
-router.patch("/password", validateCurrentPassword, updatePassword);
+router.patch("/password", validarJWT, validateCurrentPassword, updatePassword);
 export default router;

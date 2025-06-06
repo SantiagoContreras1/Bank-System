@@ -48,6 +48,10 @@ export const UserSchema = Schema({
       required: true,
       min: 100,
     },
+    account: {
+      type: Schema.Types.ObjectId,
+      ref: "Account"
+    },
     favorites: [
       {
         account: {

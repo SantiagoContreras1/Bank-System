@@ -4,7 +4,7 @@ import { validarJWT } from '../middlewares/validar-JWT.js';
 import { validarAdmin } from '../middlewares/validar-admin.js'
 const router = Router();
 
-router.get('/', getAccounts);
+router.get('/', validarJWT, validarAdmin, getAccounts);
 
 router.get('/unverified/', validarAdmin, validarJWT, getUnverifiedAccounts);
 

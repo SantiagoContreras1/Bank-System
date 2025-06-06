@@ -4,7 +4,7 @@ import { response, request } from "express";
 
 export const getUsers = async (req = request, res = response) => {
   try {
-    const query = { estado: true };
+    const query = { status: true };
 
     const [total, users] = await Promise.all([
       User.countDocuments(query),
@@ -128,7 +128,8 @@ export const deleteUser = async (req, res) => {
 
 export const updatePassword = async (req, res = response) => {
   try {
-    const userId = req.user._id
+    const userId = req.user
+    console.log(req.user)
     const { password } = req.body;
 
     const hashedPassword = await hash(password);
