@@ -8,10 +8,7 @@ export const login = async (req, res) => {
 
   try {
     const user = await User.findOne({
-      $or: [
-        { email: email },
-        { username: username }
-      ]
+      $or: [{ email: email }, { username: username }],
     });
 
     if (!user) {
@@ -35,21 +32,15 @@ export const login = async (req, res) => {
     }
 
     const token = await generarJWT(user.id);
-    
+
     return res.status(200).json({
       msg: "Usuario logueado correctamente",
-      user:{
-        id: user.id,
-        nombre: user.nombre,
-        email: user.email,
-        role: user.role,
-      },
+      user,
       token,
     });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.status(400).json({
-      
       msg: "Error al iniciar sesion",
       error: error.message,
     });
@@ -71,7 +62,7 @@ export const register = async (req, res) => {
       email: data.email,
       password: encryptedPassword,
       monthlyIncome: data.monthlyIncome,
-      role: data.role || 'USER_ROLE',
+      role: data.role || "USER_ROLE",
     });
 
     const account = await Account.create({
@@ -92,8 +83,8 @@ export const register = async (req, res) => {
       },
     });
   } catch (error) {
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map(err => err.message);
+    if (error.name === "ValidationError") {
+      const errors = Object.values(error.errors).map((err) => err.message);
       return res.status(400).json({
         message: "Validation failed",
         errors,
