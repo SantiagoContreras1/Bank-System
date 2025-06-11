@@ -1,5 +1,6 @@
 import Transaction from "../transactions/transaction.model.js";
 import Account from "../accounts/account.model.js";
+import User from "../users/user.model.js";
 import { validarAdmin } from "./validar-admin.js";
 
 export const canCreateTransaction = async (req, res, next) => {
@@ -36,9 +37,7 @@ export const canCreateTransaction = async (req, res, next) => {
         });
     }
 
-    const toAccount = await Account.find({ accountNo: accountNo });
-
-    
+    const toAccount = await Account.findOne({ accountNo: accountNo });
     
     if (!toAccount) {
         return res.status(404).json({
@@ -54,7 +53,6 @@ export const canCreateTransaction = async (req, res, next) => {
 
     if (type === 'DEPOSIT'){
         validarAdmin(req, res, next);
-
         return;
     }
 
@@ -64,12 +62,20 @@ export const canCreateTransaction = async (req, res, next) => {
         });
     
     }
+
+    if (type === 'TRANSFER' && toAccount._id.toString() === req.user.account._id.toString()) {
+        return res.status(400).json({
+            message: "You cannot transfer to the same account."
+        });
+    }
+
+    
     const fromUser = await User.findById(req.user._id);
-            
+
     const fromAccount = await Account.findById(fromUser.account._id);
 
-
     const transactionOfDay = sumarTransaccionesDelDia(fromAccount.transactions);
+
     if (transactionOfDay + amount > 10000) {
         return res.status(400).json({
             message: "You can only transfer a maximum of Q.10,000.00 per day."
