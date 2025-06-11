@@ -1,5 +1,4 @@
 import { Router } from "express";
-//import { validar-JWT } from "../middlewares/validar-JWT.js";
 
 import {
   saveProduct,
@@ -10,13 +9,14 @@ import {
 } from "./product.controller.js";
 import { validarJWT } from "../middlewares/validar-JWT.js";
 import { validarAdmin } from "../middlewares/validar-admin.js";
+import {validateDisscount} from "../middlewares/disscount-validator.js"
 
 const router = Router();
 
 router.get("/", getProducts);
 router.get("/search/:id", [validarJWT], searchProduct);
 
-router.post("/save", [validarJWT, validarAdmin], saveProduct);
+router.post("/save", [validarJWT, validarAdmin, validateDisscount], saveProduct);
 
 router.put("/update/:id", [validarJWT, validarAdmin], updateProduct);
 

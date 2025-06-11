@@ -10,13 +10,25 @@ export const ProductSchema = new Schema({
     type: String,
     required: true,
   },
+  type: {
+    type: String,
+    enum: ["Product", "Service"],
+    required: true,
+  },
   enterprise: {
     type: String,
     required: true,
   },
-  profitPrice: {
+  disscountPorcent: {
+    type: Number,
+    default: 0
+  },
+  originalPrice: {
     type: Number,
     required: true,
+  },
+  profitPrice: {
+    type: Number
   },
   img: { type: String },
   status: {
