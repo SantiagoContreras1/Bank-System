@@ -23,6 +23,25 @@ const AccountSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    transactions: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Transaction',
+      autopopulate: true
+    }],
+    accountType: {
+      type: String,
+      enum: ['SAVINGS', 'CHECKING'],
+      //required: true,
+      default: 'SAVINGS',
+    },
+    creditLimit: {
+      type: Number,
+      default: 0.00,
+    },
+    availableCredit: {
+      type: Number,
+      default: 0.00,
+    },
     status: {
       type: Boolean,
       default: true,
