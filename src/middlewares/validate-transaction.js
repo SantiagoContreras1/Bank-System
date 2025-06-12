@@ -1,6 +1,7 @@
 import Transaction from "../transactions/transaction.model.js";
 import Account from "../accounts/account.model.js";
 import User from "../users/user.model.js";
+import Product from "../products/product.model.js";
 import { validarAdmin } from "./validar-admin.js";
 
 export const canCreateTransaction = async (req, res, next) => {
@@ -29,25 +30,32 @@ export const canCreateTransaction = async (req, res, next) => {
       return total;
     };
 
-    const { type, accountNo, amount } = req.body;
+    const { type, accountNo, amount, productId } = req.body;
 
-    if (!type || !accountNo || !amount) {
+    if (type !== "PURCHASE" && (!type || !accountNo || !amount)) {
         return res.status(400).json({
             message: "Missing required fields: type, fromAccount, accountNo, or amount"
         });
     }
 
     const toAccount = await Account.findOne({ accountNo: accountNo });
+    const product = await Product.findById(productId);
+
+    if (!product) {
+            return res.status(404).json({
+                message: "Product not found."
+            });
+        }
     
-    if (!toAccount) {
+    if (type !== "PURCHASE" && !toAccount) {        
         return res.status(404).json({
             message: "Account not found."
         });
     }
 
-    if (type !== 'DEPOSIT' && type !== 'TRANSFER') {
+    if (type !== 'DEPOSIT' && type !== 'TRANSFER' && type !== 'PURCHASE') {
         return res.status(400).json({
-            message: "Invalid transaction type. Must be either 'DEPOSIT' or 'TRANSFER'."
+            message: "Invalid transaction type. Must be either 'DEPOSIT', 'TRANSFER' or 'PURCHASE'."
         });
     }
 

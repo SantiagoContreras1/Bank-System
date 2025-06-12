@@ -1,48 +1,54 @@
 import {Schema, model} from 'mongoose';
 import mongooseAutoPopulate from 'mongoose-autopopulate';
 
-const TransactionSchema = new Schema({
+const TransactionSchema = new Schema(
+  {
     type: {
-        type: String,
-        enum: ['DEPOSIT', 'TRANSFER', 'PURCHASE'],
-        required: true,
+      type: String,
+      enum: ["DEPOSIT", "TRANSFER", "PURCHASE"],
+      required: true,
     },
     admin: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-        autopopulate: true,
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      autopopulate: true,
     },
     fromAcount: {
-        type: Schema.Types.ObjectId,
-        ref: 'Account',
-        autopopulate: true,
-
+      type: Schema.Types.ObjectId,
+      ref: "Account",
+      autopopulate: true,
     },
     toAccount: {
-        type: Schema.Types.ObjectId,
-        ref: 'Account',
-        autopopulate: true,
-        required: true,
+      type: Schema.Types.ObjectId,
+      required: true,
+      refPath: "toAccountModel",
+      autopopulate: true,
+    },
+    toAccountModel: {
+      type: String,
+      required: true,
+      enum: ["Account", "Product"],
     },
     amount: {
-        type: Number,
-        required: true,
-        min: 5,
-        max: 2000,
+      type: Number,
+      required: true,
+      min: 5,
+      max: 2000,
     },
     description: {
-        type: String,
-        required: true,
-        maxlength: 200,
+      type: String,
+      required: true,
+      maxlength: 200,
     },
     status: {
-        type: Boolean,
-        default: true,
+      type: Boolean,
+      default: true,
     },
-}, {
+  },
+  {
     timestamps: true,
-
-});
+  }
+);
 
 TransactionSchema.plugin(mongooseAutoPopulate);
 

@@ -1,5 +1,5 @@
 import Router from "express";
-import { createTransaction, getTransactions, getTransactionById, getTransactionsByAccountId, updateTransaction, cancelTransaction } from "./transaction.controller.js";
+import { createTransaction, getTransactions, getTransactionById, getTransactionsByAccountId, updateTransaction, cancelTransaction, getCredit } from "./transaction.controller.js";
 import { canCreateTransaction, canUpdateTransaction, canCancelTransaction } from "../middlewares/validate-transaction.js";
 import { validarAdmin } from "../middlewares/validar-admin.js";
 import { validarJWT } from "../middlewares/validar-jwt.js";
@@ -16,6 +16,11 @@ router.get(
     "/", 
     validarJWT,
     getTransactions
+);
+router.get(
+    "/credit", 
+    validarJWT, 
+    getCredit
 );
 router.get(
     "/:id", 
@@ -41,5 +46,6 @@ router.delete(
     canCancelTransaction, 
     cancelTransaction
 );
+
 
 export default router;
