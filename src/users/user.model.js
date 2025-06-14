@@ -61,6 +61,13 @@ export const UserSchema = Schema({
         },
       },
     ],
+    twoFactorEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    twoFactorSecret: {
+      type: String,
+    },
     creatAt:{
       type: Date,
       default: Date.now

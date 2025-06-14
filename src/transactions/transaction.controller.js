@@ -247,3 +247,106 @@ export const getCredit = async (req, res) => {
         });
     }
 }
+
+export const getChartData = async (req, res) => {
+  try {
+    const { accountId } = req.params;
+    const { months = 6 } = req.query;
+
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - months);
+
+    const transactions = await Transaction.find({
+      $or: [
+        { fromAcount: accountId },
+        { toAccount: accountId }
+      ],
+      createdAt: { $gte: startDate }
+    }).sort({ createdAt: 1 });
+
+    const labels = [];
+    const incomeData = [];
+    const expenseData = [];
+
+    const monthlyData = new Map();
+    const currentMonth = new Date().toLocaleString('default', { month: 'short' });
+    let currentMonthIncome = 0;
+    let currentMonthExpense = 0;
+    let previousMonthIncome = 0;
+    let previousMonthExpense = 0;
+
+    transactions.forEach(transaction => {
+      const date = new Date(transaction.createdAt);
+      const monthKey = date.toLocaleString('default', { month: 'short' });
+      
+      if (!monthlyData.has(monthKey)) {
+        monthlyData.set(monthKey, { income: 0, expense: 0 });
+      }
+
+      const monthData = monthlyData.get(monthKey);
+
+      if (transaction.toAccount.toString() === accountId) {
+        monthData.income += transaction.amount;
+        if (monthKey === currentMonth) {
+          currentMonthIncome += transaction.amount;
+        }
+      } else if (transaction.fromAcount?.toString() === accountId) {
+        monthData.expense += transaction.amount;
+        if (monthKey === currentMonth) {
+          currentMonthExpense += transaction.amount;
+        }
+      }
+    });
+
+    // Obtener datos del mes anterior para calcular tendencias
+    const previousMonth = new Date();
+    previousMonth.setMonth(previousMonth.getMonth() - 1);
+    const previousMonthKey = previousMonth.toLocaleString('default', { month: 'short' });
+    const previousMonthData = monthlyData.get(previousMonthKey) || { income: 0, expense: 0 };
+    previousMonthIncome = previousMonthData.income;
+    previousMonthExpense = previousMonthData.expense;
+
+    // Calcular porcentajes y tendencias
+    const incomePercentage = previousMonthIncome === 0 ? 100 : 
+      ((currentMonthIncome - previousMonthIncome) / previousMonthIncome) * 100;
+    const expensePercentage = previousMonthExpense === 0 ? 100 : 
+      ((currentMonthExpense - previousMonthExpense) / previousMonthExpense) * 100;
+
+    monthlyData.forEach((data, month) => {
+      labels.push(month);
+      incomeData.push(data.income);
+      expenseData.push(data.expense);
+    });
+
+    res.json({
+      labels,
+      datasets: [
+        {
+          label: "Ingresos",
+          data: incomeData
+        },
+        {
+          label: "Gastos",
+          data: expenseData
+        }
+      ],
+      summary: {
+        income: {
+          amount: currentMonthIncome,
+          percentage: Math.round(incomePercentage),
+          trend: incomePercentage >= 0 ? 'up' : 'down'
+        },
+        expense: {
+          amount: currentMonthExpense,
+          percentage: Math.round(expensePercentage),
+          trend: expensePercentage >= 0 ? 'up' : 'down'
+        }
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      msg: "Error al obtener los datos del gráfico"
+    });
+  }
+};

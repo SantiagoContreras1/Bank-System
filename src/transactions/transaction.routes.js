@@ -1,15 +1,16 @@
 import Router from "express";
-import { createTransaction, getTransactions, getTransactionById, getTransactionsByAccountId, updateTransaction, cancelTransaction, getCredit } from "./transaction.controller.js";
+import { createTransaction, getTransactions, getTransactionById, getTransactionsByAccountId, updateTransaction, cancelTransaction, getCredit, getChartData } from "./transaction.controller.js";
 import { canCreateTransaction, canUpdateTransaction, canCancelTransaction } from "../middlewares/validate-transaction.js";
 import { validarAdmin } from "../middlewares/validar-admin.js";
-import { validarJWT } from "../middlewares/validar-jwt.js";
-
+import { validarJWT } from "../middlewares/validar-JWT.js";
+import { validate2FA } from "../middlewares/validate2fa.js";
 const router = Router();
 
 router.post(
     "/", 
     validarJWT, 
     canCreateTransaction, 
+    validate2FA,
     createTransaction
 );
 router.get(
@@ -20,6 +21,7 @@ router.get(
 router.get(
     "/credit", 
     validarJWT, 
+    validate2FA,
     getCredit
 );
 router.get(
@@ -32,6 +34,7 @@ router.get(
     validarJWT, 
     getTransactionsByAccountId
 );
+router.get('/chart/:accountId', getChartData);
 router.put(
     "/:id", 
     validarJWT,
@@ -43,7 +46,7 @@ router.delete(
     "/:id", 
     validarJWT,
     validarAdmin, 
-    canCancelTransaction, 
+    canCancelTransaction,
     cancelTransaction
 );
 

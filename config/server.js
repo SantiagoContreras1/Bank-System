@@ -9,6 +9,7 @@ import userRoutes from '../src/users/user.routes.js';
 import User from '../src/users/user.model.js';
 import balanceRoutes from '../src/balance/balance.route.js';
 import transactionRoutes from '../src/transactions/transaction.routes.js';
+import twoFactorRoutes from '../src/2fa/2fa.routes.js';
 
 import { hash } from "argon2";
 
@@ -26,6 +27,7 @@ const routes = (app) => {
   app.use("/bankSystem/v1/user", userRoutes);
   app.use("/bankSystem/v1/balance", balanceRoutes);
   app.use("/bankSystem/v1/transaction", transactionRoutes);
+  app.use("/bankSystem/v1/2fa", twoFactorRoutes);
 };
 
 const conectarDb = async () => {
