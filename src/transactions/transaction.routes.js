@@ -1,0 +1,62 @@
+import Router from "express";
+import { createTransaction, getTransactions, getTransactionById, getTransactionsByAccountId, updateTransaction, cancelTransaction, getCredit, getChartData, getMonthlySummary } from "./transaction.controller.js";
+import { canCreateTransaction, canUpdateTransaction, canCancelTransaction } from "../middlewares/validate-transaction.js";
+import { validarAdmin } from "../middlewares/validar-admin.js";
+import { validarJWT } from "../middlewares/validar-JWT.js";
+import { validate2FA } from "../middlewares/validate2fa.js";
+const router = Router();
+
+router.post(
+    "/", 
+    validarJWT, 
+    canCreateTransaction, 
+    validate2FA,
+    createTransaction
+);
+router.get(
+    "/", 
+    validarJWT,
+    getTransactions
+);
+
+router.get(
+  "/summary-by-month/:accountId",
+  validarJWT,
+  validate2FA,
+  getMonthlySummary
+);
+
+router.get(
+    "/credit", 
+    validarJWT, 
+    validate2FA,
+    getCredit
+);
+router.get(
+    "/:id", 
+    validarJWT, 
+    getTransactionById
+);
+router.get(
+    "/account/:id", 
+    validarJWT, 
+    getTransactionsByAccountId
+);
+router.get('/chart/:accountId', getChartData);
+router.put(
+    "/:id", 
+    validarJWT,
+    validarAdmin, 
+    canUpdateTransaction, 
+    updateTransaction
+);
+router.delete(
+    "/:id", 
+    validarJWT,
+    validarAdmin, 
+    canCancelTransaction,
+    cancelTransaction
+);
+
+
+export default router;
