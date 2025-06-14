@@ -53,7 +53,10 @@ export const UserSchema = Schema({
         account: {
           type: Schema.Types.ObjectId,
           ref: "Account",
-          autopopulate: true
+          autopopulate: {
+            select: 'accountNo balance accountType',
+            options: { lean: true }
+          }
         },
         alias: {
           type: String,
@@ -79,12 +82,23 @@ export const UserSchema = Schema({
   },
   {
     timestamps: true,
+    toJSON: { 
+      virtuals: false,
+      transform: function(doc, ret) {
+        delete ret.__v;
+        delete ret.password;
+        return ret;
+      }
+    },
+    toObject: { 
+      virtuals: false,
+      transform: function(doc, ret) {
+        delete ret.__v;
+        delete ret.password;
+        return ret;
+      }
+    }
   });
-
-UserSchema.methods.toJSON = function() {
-    const {__v, password, ...user} = this.toObject();
-    return user;
-}
 
 UserSchema.plugin(mongooseAutoPopulate);
 

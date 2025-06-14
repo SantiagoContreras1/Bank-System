@@ -7,23 +7,23 @@ import Product from "../products/product.model.js";
 export const createTransaction = async (req, res) => {
     try {
         const data = req.body;
-
         const toAccount = await Account.findOne({ accountNo: data.accountNo });
+        const fromAccount = await Account.findOne({ user: req.user._id });
 
         if (data.type === 'PURCHASE') {
-
-            const product = await Product.findById(data.productId);
-            const fromAccount = await Account.findById(req.user.account._id);
-
-            if (!product) {
-                return res.status(404).json({
-                    message: "Product not found."
+            console.log('purchase')
+            if (!data.productId) {
+                return res.status(400).json({
+                    message: "Product ID is required"
                 });
             }
 
+            const product = await Product.findById(data.productId);
+
+
             if (!fromAccount) {
                 return res.status(404).json({
-                    message: "Account not found."
+                    message: "Account not found"
                 });
             }
 
@@ -36,16 +36,20 @@ export const createTransaction = async (req, res) => {
                 description: "Purchase of " + product.name + " " + product.type
             });
 
-            if( fromAccount.balance < Number(product.profitPrice)) {
-                if(fromAccount.availableCredit >= Number(product.profitPrice)) {
+            if (fromAccount.balance < Number(product.profitPrice)) {
+                if (fromAccount.availableCredit >= Number(product.profitPrice)) {
                     fromAccount.availableCredit -= Number(product.profitPrice);
                     fromAccount.transactions.push(transaction._id);
                     await fromAccount.save();
                     await transaction.save();
+                    
+                    return res.status(201).json({
+                        transaction,
+                        message: "Purchase created successfully using credit"
+                    });
                 }
-                return res.status(201).json({
-                  transaction,
-                  message: "Purchase created successfully, using credit"
+                return res.status(400).json({
+                    message: "Insufficient balance and credit not available"
                 });
             }
 
@@ -57,66 +61,69 @@ export const createTransaction = async (req, res) => {
             return res.status(201).json({
                 transaction,
                 message: "Purchase created successfully"
-            });         
-
+            });
         }
 
-        if (data.type === 'TRANSFER'){
-
-            const fromUser = await User.findById(req.user._id);
-
-            const fromAccount = await Account.findById(fromUser.account._id);
+        if (data.type === 'TRANSFER') {
+            if (!data.accountNo || !data.amount) {
+                return res.status(400).json({
+                    message: "Destination account number and amount are required"
+                });
+            }
 
             const transaction = new Transaction({
-            type: data.type,
-            fromAccount: fromAccount._id, 
-            toAccount: toAccount._id,
-            toAccountModel: 'Account',
-            amount: Number(data.amount),
-            description: data.description,
+                type: data.type,
+                fromAccount: fromAccount._id,
+                toAccount: toAccount._id,
+                toAccountModel: 'Account',
+                amount: Number(data.amount),
+                description: data.description || "Account transfer"
             });
 
             fromAccount.balance -= Number(data.amount);
-
             toAccount.balance += Number(data.amount);
-
             fromAccount.transactions.push(transaction._id);
 
             await transaction.save();
             await fromAccount.save();
             await toAccount.save();
 
-            res.status(201).json({
-            transaction, 
-            message: "Tranference created successfully"
+            return res.status(201).json({
+                transaction,
+                message: "Transfer completed successfully"
             });
         }
 
         if (data.type === 'DEPOSIT') {
             const admin = await User.findById(req.user._id);
-            console.log(toAccount);
+            const toAccount = await Account.findOne({ accountNo: data.accountNo });
+            
+            if (!toAccount) {
+                return res.status(404).json({
+                    message: "Destination account not found"
+                });
+            }
+
             const transaction = new Transaction({
                 type: data.type,
                 admin: admin._id,
                 toAccount: toAccount._id,
                 toAccountModel: 'Account',
                 amount: Number(data.amount),
-                description: data.description,
+                description: data.description || "Account deposit"
             });
 
             toAccount.balance += Number(data.amount);
+            toAccount.transactions.push(transaction._id);
 
             await transaction.save();
             await toAccount.save();
-            await admin.save();
 
-            res.status(201).json({
-            transaction, 
-            message: "deposit created successfully"
+            return res.status(201).json({
+                transaction,
+                message: "Deposit completed successfully"
             });
         }
-        
-
         
     } catch (error) {
         res.status(500).json({ 
@@ -249,104 +256,147 @@ export const getCredit = async (req, res) => {
 }
 
 export const getChartData = async (req, res) => {
-  try {
-    const { accountId } = req.params;
-    const { months = 6 } = req.query;
-
-    const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - months);
-
-    const transactions = await Transaction.find({
-      $or: [
-        { fromAcount: accountId },
-        { toAccount: accountId }
-      ],
-      createdAt: { $gte: startDate }
-    }).sort({ createdAt: 1 });
-
-    const labels = [];
-    const incomeData = [];
-    const expenseData = [];
-
-    const monthlyData = new Map();
-    const currentMonth = new Date().toLocaleString('default', { month: 'short' });
-    let currentMonthIncome = 0;
-    let currentMonthExpense = 0;
-    let previousMonthIncome = 0;
-    let previousMonthExpense = 0;
-
-    transactions.forEach(transaction => {
-      const date = new Date(transaction.createdAt);
-      const monthKey = date.toLocaleString('default', { month: 'short' });
+    try {
+      const { accountId } = req.params;
+      const { months = 6 } = req.query;
       
-      if (!monthlyData.has(monthKey)) {
-        monthlyData.set(monthKey, { income: 0, expense: 0 });
+      // Crear fecha de inicio más flexible
+      const startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - parseInt(months));
+      startDate.setDate(1); // Comenzar desde el primer día del mes
+      
+      console.log('Buscando transacciones desde:', startDate);
+      console.log('Para cuenta:', accountId);
+      
+      const transactions = await Transaction.find({
+        $or: [
+          { fromAccount: accountId },
+          { toAccount: accountId }
+        ],
+        createdAt: { $gte: startDate }
+      }).sort({ createdAt: 1 });
+      
+      console.log('Transacciones encontradas:', transactions.length);
+      console.log('Primera transacción:', transactions[0]);
+      
+      // Si no hay transacciones, buscar sin filtro de fecha para debug
+      if (transactions.length === 0) {
+        const allTransactions = await Transaction.find({
+          $or: [
+            { fromAccount: accountId },
+            { toAccount: accountId }
+          ]
+        }).limit(5);
+        console.log('Transacciones sin filtro de fecha:', allTransactions.length);
+        console.log('Ejemplo de transacción:', allTransactions[0]);
       }
-
-      const monthData = monthlyData.get(monthKey);
-
-      if (transaction.toAccount.toString() === accountId) {
-        monthData.income += transaction.amount;
-        if (monthKey === currentMonth) {
-          currentMonthIncome += transaction.amount;
+      
+      const labels = [];
+      const incomeData = [];
+      const expenseData = [];
+      const monthlyData = new Map();
+      
+      // Obtener mes actual
+      const now = new Date();
+      const currentMonth = now.toLocaleString('default', { month: 'short' });
+      let currentMonthIncome = 0;
+      let currentMonthExpense = 0;
+      
+      transactions.forEach(transaction => {
+        const date = new Date(transaction.createdAt);
+        const monthKey = date.toLocaleString('default', { month: 'short' });
+        
+        console.log(`Procesando transacción: ${transaction._id}, mes: ${monthKey}`);
+        
+        if (!monthlyData.has(monthKey)) {
+          monthlyData.set(monthKey, { income: 0, expense: 0 });
         }
-      } else if (transaction.fromAcount?.toString() === accountId) {
-        monthData.expense += transaction.amount;
-        if (monthKey === currentMonth) {
-          currentMonthExpense += transaction.amount;
+        
+        const monthData = monthlyData.get(monthKey);
+        
+        // Extraer los IDs de los objetos
+        const toAccountId = transaction.toAccount?._id?.toString();
+        const fromAccountId = transaction.fromAccount?._id?.toString();
+        const accountIdStr = accountId.toString();
+        
+        console.log(`Comparando: toAccount=${toAccountId}, fromAccount=${fromAccountId}, accountId=${accountIdStr}`);
+        
+        // Es un ingreso para esta cuenta
+        if (toAccountId === accountIdStr) {
+          monthData.income += transaction.amount;
+          if (monthKey === currentMonth) {
+            currentMonthIncome += transaction.amount;
+          }
+          console.log(`Ingreso agregado: ${transaction.amount}`);
+        } 
+        // Es un gasto desde esta cuenta
+        else if (fromAccountId === accountIdStr) {
+          monthData.expense += transaction.amount;
+          if (monthKey === currentMonth) {
+            currentMonthExpense += transaction.amount;
+          }
+          console.log(`Gasto agregado: ${transaction.amount}`);
         }
-      }
-    });
-
-    // Obtener datos del mes anterior para calcular tendencias
-    const previousMonth = new Date();
-    previousMonth.setMonth(previousMonth.getMonth() - 1);
-    const previousMonthKey = previousMonth.toLocaleString('default', { month: 'short' });
-    const previousMonthData = monthlyData.get(previousMonthKey) || { income: 0, expense: 0 };
-    previousMonthIncome = previousMonthData.income;
-    previousMonthExpense = previousMonthData.expense;
-
-    // Calcular porcentajes y tendencias
-    const incomePercentage = previousMonthIncome === 0 ? 100 : 
-      ((currentMonthIncome - previousMonthIncome) / previousMonthIncome) * 100;
-    const expensePercentage = previousMonthExpense === 0 ? 100 : 
-      ((currentMonthExpense - previousMonthExpense) / previousMonthExpense) * 100;
-
-    monthlyData.forEach((data, month) => {
-      labels.push(month);
-      incomeData.push(data.income);
-      expenseData.push(data.expense);
-    });
-
-    res.json({
-      labels,
-      datasets: [
-        {
-          label: "Ingresos",
-          data: incomeData
-        },
-        {
-          label: "Gastos",
-          data: expenseData
+      });
+      
+      // Calcular mes anterior
+      const previousMonth = new Date();
+      previousMonth.setMonth(previousMonth.getMonth() - 1);
+      const previousMonthKey = previousMonth.toLocaleString('default', { month: 'short' });
+      
+      const previousMonthData = monthlyData.get(previousMonthKey) || { income: 0, expense: 0 };
+      const previousMonthIncome = previousMonthData.income;
+      const previousMonthExpense = previousMonthData.expense;
+      
+      // Calcular porcentajes y tendencias
+      const incomePercentage = previousMonthIncome === 0 ? 
+        (currentMonthIncome > 0 ? 100 : 0) : 
+        ((currentMonthIncome - previousMonthIncome) / previousMonthIncome) * 100;
+        
+      const expensePercentage = previousMonthExpense === 0 ? 
+        (currentMonthExpense > 0 ? 100 : 0) : 
+        ((currentMonthExpense - previousMonthExpense) / previousMonthExpense) * 100;
+      
+      // Generar arrays para el gráfico
+      monthlyData.forEach((data, month) => {
+        labels.push(month);
+        incomeData.push(data.income);
+        expenseData.push(data.expense);
+      });
+      
+      console.log('Datos finales:', { labels, incomeData, expenseData });
+      
+      res.json({
+        labels,
+        datasets: [
+          {
+            label: "Ingresos",
+            data: incomeData
+          },
+          {
+            label: "Gastos",
+            data: expenseData
+          }
+        ],
+        summary: {
+          income: {
+            amount: currentMonthIncome,
+            percentage: Math.round(incomePercentage),
+            trend: incomePercentage >= 0 ? 'up' : 'down'
+          },
+          expense: {
+            amount: currentMonthExpense,
+            percentage: Math.round(expensePercentage),
+            trend: expensePercentage >= 0 ? 'up' : 'down'
+          }
         }
-      ],
-      summary: {
-        income: {
-          amount: currentMonthIncome,
-          percentage: Math.round(incomePercentage),
-          trend: incomePercentage >= 0 ? 'up' : 'down'
-        },
-        expense: {
-          amount: currentMonthExpense,
-          percentage: Math.round(expensePercentage),
-          trend: expensePercentage >= 0 ? 'up' : 'down'
-        }
-      }
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      msg: "Error al obtener los datos del gráfico"
-    });
-  }
-};
+      });
+      
+    } catch (error) {
+      console.error('Error completo:', error);
+      res.status(500).json({
+        msg: "Error al obtener los datos del gráfico",
+        error: error.message
+      });
+    }
+  };

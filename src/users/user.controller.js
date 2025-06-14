@@ -1,5 +1,6 @@
 import User from "./user.model.js";
 import { hash, verify } from "argon2";
+import Account from "../accounts/account.model.js";
 import { response, request } from "express";
 
 export const getUsers = async (req = request, res = response) => {
@@ -153,3 +154,44 @@ export const updatePassword = async (req, res = response) => {
     });
   }
 };
+
+export const newFavorite = async (req, res) => {
+  try {
+    const { accountNo, alias } = req.body;
+    const user = await User.findById(req.user._id);
+    const account = await Account.findOne({ accountNo: accountNo });
+
+    if(!account){
+      return res.status(404).json({
+        success: false,
+        msg: "Account not found",
+      });
+    }
+
+    const isAlreadyFavorite = user.favorites.some(favorite => 
+      favorite.account.toString() === account._id.toString()
+    );
+
+    if(isAlreadyFavorite) {
+      return res.status(400).json({
+        success: false,
+        msg: "Esta cuenta ya está en tus favoritos",
+      });
+    }
+  
+    user.favorites.push({ account: account._id, alias });
+    await user.save();
+    res.status(200).json({
+      success: true,
+      msg: "Favorite added successfully",
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      msg: "Error adding favorite",
+      error: error.message,
+    });
+  }
+}
+

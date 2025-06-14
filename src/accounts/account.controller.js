@@ -102,7 +102,7 @@ export const getAccountByUser = async (req, res) => {
   try {
     const userId = req.user._id;
     const account = await Account.findOne({ user: userId });
-
+    console.log(account)
     if (!account) {
       return res.status(404).json({
         success: false,

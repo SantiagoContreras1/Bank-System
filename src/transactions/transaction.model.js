@@ -11,18 +11,27 @@ const TransactionSchema = new Schema(
     admin: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      autopopulate: true,
+      autopopulate: {
+        select: 'name email',
+        options: { lean: true }
+      }
     },
-    fromAcount: {
+    fromAccount: {
       type: Schema.Types.ObjectId,
       ref: "Account",
-      autopopulate: true,
+      autopopulate: {
+        select: 'accountNo balance accountType',
+        options: { lean: true }
+      }
     },
     toAccount: {
       type: Schema.Types.ObjectId,
       required: true,
       refPath: "toAccountModel",
-      autopopulate: true,
+      autopopulate: {
+        select: 'name type profitPrice accountNo balance accountType user',
+        options: { lean: true }
+      }
     },
     toAccountModel: {
       type: String,
@@ -51,11 +60,6 @@ const TransactionSchema = new Schema(
 );
 
 TransactionSchema.plugin(mongooseAutoPopulate);
-
-TransactionSchema.methods.toJSON = function() {
-    const {__v, ...transaction} = this.toObject();
-    return transaction;
-}
 
 const Transaction = model('Transaction', TransactionSchema);
 

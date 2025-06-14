@@ -39,19 +39,17 @@ export const canCreateTransaction = async (req, res, next) => {
     }
 
     const toAccount = await Account.findOne({ accountNo: accountNo });
-    const product = await Product.findById(productId);
-
-    if (!product) {
+    
+    if (productId) {
+        const product = await Product.findById(productId);
+        if (!product) {
             return res.status(404).json({
                 message: "Product not found."
             });
         }
-    
-    if (type !== "PURCHASE" && !toAccount) {        
-        return res.status(404).json({
-            message: "Account not found."
-        });
     }
+    
+    
 
     if (type !== 'DEPOSIT' && type !== 'TRANSFER' && type !== 'PURCHASE') {
         return res.status(400).json({
@@ -71,16 +69,21 @@ export const canCreateTransaction = async (req, res, next) => {
     
     }
 
-    if (type === 'TRANSFER' && toAccount._id.toString() === req.user.account._id.toString()) {
+    const fromUser = await User.findById(req.user._id);
+
+    const fromAccount = await Account.findOne({ user: fromUser._id });
+
+    if (!fromAccount) {
+        return res.status(404).json({
+            message: "User account not found."
+        });
+    }
+
+    if (type === 'TRANSFER' && toAccount._id.toString() === fromAccount._id.toString()) {
         return res.status(400).json({
             message: "You cannot transfer to the same account."
         });
     }
-
-    
-    const fromUser = await User.findById(req.user._id);
-
-    const fromAccount = await Account.findById(fromUser.account._id);
 
     const transactionOfDay = sumarTransaccionesDelDia(fromAccount.transactions);
 

@@ -3,9 +3,11 @@ import User from "../users/user.model.js";
 
 export const validate2FA = async (req, res, next) => {
   try {
-    const { twoFactorCode } = req.body;
+    const { twoFactorCode, type } = req.body;
     const user = await User.findById(req.user.id);
-    
+    if(type === 'DEPOSIT') {
+      return next();
+    }
     if (!user.twoFactorEnabled) {
       return res.status(401).json({
         success: false,

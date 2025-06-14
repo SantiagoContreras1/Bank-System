@@ -12,7 +12,10 @@ const AccountSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-      autopopulate: true
+      autopopulate: {
+        select: 'name email username role',
+        options: { lean: true }
+      }
     },
     balance: {
       type: Number,
@@ -26,7 +29,10 @@ const AccountSchema = new Schema(
     transactions: [{
       type: Schema.Types.ObjectId,
       ref: 'Transaction',
-      autopopulate: true
+      autopopulate: {
+        select: 'type amount description createdAt fromAccount toAccount toAccountModel',
+        options: { lean: true }
+      }
     }],
     accountType: {
       type: String,
@@ -47,7 +53,23 @@ const AccountSchema = new Schema(
       default: true,
     },
   },
-  { timestamps: true } 
+  { 
+    timestamps: true,
+    toJSON: { 
+      virtuals: false,
+      transform: function(doc, ret) {
+        delete ret.__v;
+        return ret;
+      }
+    },
+    toObject: { 
+      virtuals: false,
+      transform: function(doc, ret) {
+        delete ret.__v;
+        return ret;
+      }
+    }
+  } 
 );
 
 AccountSchema.plugin(mongooseAutoPopulate);

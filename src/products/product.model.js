@@ -35,11 +35,24 @@ export const ProductSchema = new Schema({
     type: Boolean,
     default: true,
   },
+}, {
+  timestamps: true,
+  toJSON: { 
+    virtuals: false,
+    transform: function(doc, ret) {
+      delete ret.__v;
+      return ret;
+    }
+  },
+  toObject: { 
+    virtuals: false,
+    transform: function(doc, ret) {
+      delete ret.__v;
+      return ret;
+    }
+  }
 });
 
-ProductSchema.methods.toJSON = function () {
-    const { __v, ...product } = this.toObject();
-    return product;
-};
+ProductSchema.plugin(mongooseAutoPopulate);
 
 export default model("Product", ProductSchema);
