@@ -19,10 +19,10 @@ router.get("/search/:id", [validarJWT], searchProduct);
 
 router.post(
   "/save",
-  upload.single("img"),       // primero multer
-  validarJWT,                 // después validación del token
-  validarAdmin,               // luego verificar si es admin
-  validateDisscount,          // luego validas el descuento (ya existe req.body)
+  upload.single("img"),      
+  validarJWT,                
+  validarAdmin,             
+  validateDisscount,          
   saveProduct
 );
 
