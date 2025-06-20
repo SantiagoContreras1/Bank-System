@@ -1,6 +1,11 @@
 import Product from "./product.model.js";
 
+import multer from "multer";
+
+
 export const saveProduct = async (req, res) => {
+  console.log(req.body)
+  console.log(req.file)
   try {
     const {
       name,
@@ -9,23 +14,25 @@ export const saveProduct = async (req, res) => {
       enterprise,
       disscountPorcent,
       originalPrice,
-      img,
     } = req.body;
+
+    const img = req.file ? req.file.path : null;
+
+    const convertDiss = parseFloat(req.body.disscountPorcent);
+    const finalProfitPrice =
+      parseFloat(req.body.originalPrice) -
+      (parseFloat(req.body.originalPrice) * convertDiss) / 100;
 
     const product = new Product({
       name,
       description,
       type,
       enterprise,
-      disscountPorcent,
+      disscountPorcent: convertDiss,
       originalPrice,
+      profitPrice: finalProfitPrice,
       img,
     });
-
-    const convertDiss = parseFloat(req.body.disscountPorcent);
-    const finalProfitPrice =
-      parseFloat(req.body.originalPrice) -
-      (parseFloat(req.body.originalPrice) * convertDiss) / 100;
 
     await product.save();
 
@@ -33,7 +40,6 @@ export const saveProduct = async (req, res) => {
       msg: "Product saved successfully",
       product: {
         ...product.toObject(),
-        disscountPorcent: convertDiss,
         profitPrice: finalProfitPrice,
       },
     });
@@ -50,9 +56,21 @@ export const getProducts = async (req, res) => {
     const query = { status: true };
     const products = await Product.find(query);
 
-    res.status(201).json({
+    // Calcular profitPrice para cada producto
+    const productsWithProfit = products.map((product) => {
+      const original = parseFloat(product.originalPrice);
+      const disscount = parseFloat(product.disscountPorcent);
+      const profitPrice = original - (original * disscount) / 100;
+
+      return {
+        ...product.toObject(),
+        profitPrice,
+      };
+    });
+
+    res.status(200).json({
       msg: "Products retrieved successfully",
-      products,
+      products: productsWithProfit,
     });
   } catch (error) {
     return res.status(500).json({
@@ -73,9 +91,16 @@ export const searchProduct = async (req, res) => {
       });
     }
 
+    const original = parseFloat(product.originalPrice);
+    const disscount = parseFloat(product.disscountPorcent);
+    const profitPrice = original - (original * disscount) / 100;
+
     return res.status(200).json({
       msg: "Product found",
-      product,
+      product: {
+        ...product.toObject(),
+        profitPrice,
+      },
     });
   } catch (error) {
     return res.status(500).json({
@@ -88,6 +113,12 @@ export const searchProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ msg: "Product not found" });
+    }
+
     const {
       name,
       description,
@@ -95,45 +126,36 @@ export const updateProduct = async (req, res) => {
       enterprise,
       disscountPorcent,
       originalPrice,
-      img,
-      } = req.body;
-      
-      const product = await Product.findById(id);
-      if (!product) {
-          return res.status(404).json({
-              msg: "Product not found"
-          })
-      }
+    } = req.body;
+
+    const img = req.file ? req.file.filename : product.img;
+
+    const convertDiss = parseFloat(disscountPorcent);
+    const finalProfitPrice =
+      parseFloat(originalPrice) -
+      (parseFloat(originalPrice) * convertDiss) / 100;
 
     const updatedProduct = await Product.findByIdAndUpdate(
-      product,
+      id,
       {
         name,
         description,
         type,
         enterprise,
-        disscountPorcent,
+        disscountPorcent: convertDiss,
         originalPrice,
-        img,
+        profitPrice: finalProfitPrice,
+        img
       },
       { new: true }
     );
 
-      
-    const convertDiss = parseFloat(req.body.disscountPorcent);
-    const finalProfitPrice =
-      parseFloat(req.body.originalPrice) -
-      (parseFloat(req.body.originalPrice) * convertDiss) / 100;
-
-    await updatedProduct.save()
-
     res.status(200).json({
       msg: "Product updated successfully",
-        updatedProduct: {
-            ...updatedProduct.toObject(),
-            disscountPorcent: convertDiss,
-            profitPrice: finalProfitPrice
-      }
+      updatedProduct: {
+        ...updatedProduct.toObject(),
+        profitPrice: finalProfitPrice,
+      },
     });
   } catch (error) {
     return res.status(500).json({

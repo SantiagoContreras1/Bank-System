@@ -6,6 +6,7 @@ import { dbConnection } from "./mongo.js";
 import authRoutes from '../src/auth/auth.routes.js';
 import accountRoutes from '../src/accounts/account.routes.js';
 import userRoutes from '../src/users/user.routes.js';
+import productsRoutes from '../src/products/product.routes.js';
 import User from '../src/users/user.model.js';
 import balanceRoutes from '../src/balance/balance.route.js';
 import transactionRoutes from '../src/transactions/transaction.routes.js';
@@ -27,7 +28,9 @@ const routes = (app) => {
   app.use("/bankSystem/v1/user", userRoutes);
   app.use("/bankSystem/v1/balance", balanceRoutes);
   app.use("/bankSystem/v1/transaction", transactionRoutes);
+  app.use("/bankSystem/v1/products", productsRoutes);
   app.use("/bankSystem/v1/2fa", twoFactorRoutes);
+  app.use('/uploads', express.static('uploads')); // Servir archivos estáticos desde la carpeta 'uploads'
 };
 
 const conectarDb = async () => {
