@@ -20,8 +20,7 @@ router.get(
 );
 router.get(
     "/credit", 
-    validarJWT, 
-    validate2FA,
+    validarJWT,
     getCredit
 );
 router.get(

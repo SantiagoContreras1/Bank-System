@@ -232,13 +232,15 @@ export const cancelTransaction = async (req, res) => {
 export const getCredit = async (req, res) => {
     try {
         const user = await User.findById(req.user._id)
-        const account = await Account.findById(user.account._id);
+        const account = await Account.findOne({ user: req.user._id });
         const credit = account.creditLimit;
         const creditLeft = account.availableCredit;
         const creditUsed = (credit - creditLeft)*1.10;
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
-        const dateOfPayment = new Date(currentYear, currentMonth, 5)
+        const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+        const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+        const dateOfPayment = new Date(nextYear, nextMonth, 5);
         res.status(200).json({
             creditLimit: credit,
             availableCredit: creditLeft,
@@ -349,13 +351,20 @@ export const getChartData = async (req, res) => {
       const previousMonthExpense = previousMonthData.expense;
       
       // Calcular porcentajes y tendencias
-      const incomePercentage = previousMonthIncome === 0 ? 
-        (currentMonthIncome > 0 ? 100 : 0) : 
-        ((currentMonthIncome - previousMonthIncome) / previousMonthIncome) * 100;
+      const totalCurrentMonth = currentMonthIncome + currentMonthExpense;
+      const totalPreviousMonth = previousMonthIncome + previousMonthExpense;
+
+      const incomePercentage = totalCurrentMonth === 0 ? 
+        0 : 
+        (currentMonthIncome / totalCurrentMonth) * 100;
         
-      const expensePercentage = previousMonthExpense === 0 ? 
-        (currentMonthExpense > 0 ? 100 : 0) : 
-        ((currentMonthExpense - previousMonthExpense) / previousMonthExpense) * 100;
+      const expensePercentage = totalCurrentMonth === 0 ? 
+        0 : 
+        (currentMonthExpense / totalCurrentMonth) * 100;
+
+      // Asegurar que los porcentajes sean números válidos
+      const finalIncomePercentage = isNaN(incomePercentage) ? 0 : Math.round(incomePercentage);
+      const finalExpensePercentage = isNaN(expensePercentage) ? 0 : Math.round(expensePercentage);
       
       // Generar arrays para el gráfico
       monthlyData.forEach((data, month) => {
@@ -381,13 +390,13 @@ export const getChartData = async (req, res) => {
         summary: {
           income: {
             amount: currentMonthIncome,
-            percentage: Math.round(incomePercentage),
-            trend: incomePercentage >= 0 ? 'up' : 'down'
+            percentage: Math.round(finalIncomePercentage),
+            trend: finalIncomePercentage >= 0 ? 'up' : 'down'
           },
           expense: {
             amount: currentMonthExpense,
-            percentage: Math.round(expensePercentage),
-            trend: expensePercentage >= 0 ? 'up' : 'down'
+            percentage: Math.round(finalExpensePercentage),
+            trend: finalExpensePercentage >= 0 ? 'up' : 'down'
           }
         }
       });

@@ -3,6 +3,7 @@ import Account from "../accounts/account.model.js";
 import { hash, verify } from "argon2";
 import { generarJWT } from "../helpers/generar-JWT.js";
 import { faker } from "@faker-js/faker";
+
 export const login = async (req, res) => {
   const { email, username, password } = req.body;
 
@@ -65,11 +66,17 @@ export const register = async (req, res) => {
       role: data.role || "USER_ROLE",
     });
 
+    const creditLimit = data.monthlyIncome * 3;
+    const availableCredit = creditLimit; 
+
     const account = await Account.create({
       accountNo: faker.finance.accountNumber(10),
       user: user._id,
       balance: 0,
       verify: false,
+      accountType: data.accountType || "SAVINGS",
+      creditLimit,
+      availableCredit
     });
 
     user.account = account._id;

@@ -1,5 +1,6 @@
 import { verify } from "argon2";
 import User from "../users/user.model.js";
+import Account from "../accounts/account.model.js";
 
 
 export const checkOwnAccount = async (req, res, next) => {
@@ -112,4 +113,61 @@ export const validateCurrentPassword = async (req, res, next) => {
   }
 
   next();
+};
+
+export const validateFavorite = async (req, res, next) => {
+  try {
+    const { accountNo, alias } = req.body;
+    const user = await User.findById(req.user._id).populate('favorites.account');
+    const account = await Account.findOne({ accountNo: accountNo });
+
+    if(!account){
+      return res.status(404).json({
+        success: false,
+        msg: "Cuenta no encontrada",
+      });
+    }
+
+    // Verificar si la cuenta ya está en favoritos
+    const existingFavorite = user.favorites.find(favorite => {
+      const favoriteAccountId = favorite.account ? favorite.account._id || favorite.account : null;
+      const accountId = account._id;
+      return favoriteAccountId && favoriteAccountId.toString() === accountId.toString();
+    });
+
+    if(existingFavorite) {
+      return res.status(400).json({
+        success: false,
+        msg: "Esta cuenta ya está en tus favoritos",
+        existingAlias: existingFavorite.alias
+      });
+    }
+
+    // Verificar que no sea la cuenta propia del usuario
+    if(account.user.toString() === user._id.toString()) {
+      return res.status(400).json({
+        success: false,
+        msg: "No puedes agregar tu propia cuenta a favoritos"
+      });
+    }
+
+    // Verificar que la cuenta esté activa
+    if(!account.status) {
+      return res.status(400).json({
+        success: false,
+        msg: "No se puede agregar una cuenta inactiva a favoritos"
+      });
+    }
+
+    // Agregar la cuenta y el usuario al request para usarlos en el controlador
+    req.account = account;
+    req.user = user;
+    next();
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      msg: "Error al validar favorito",
+      error: error.message,
+    });
+  }
 };

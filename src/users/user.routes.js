@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { updateUser, updatePassword, getUsers, getUserById, deleteUser, newFavorite } from "./user.controller.js";
+import { updateUser, updatePassword, getUsers, getUserById, deleteUser, newFavorite, userAlreadyExists } from "./user.controller.js";
 import {
   checkRoleChange,
   validateCurrentPassword,
-  checkOwnAccount
+  checkOwnAccount,
+  validateFavorite
 } from "../middlewares/validator-user.js";
 import { validarJWT } from "../middlewares/validar-JWT.js";
 import { validarAdmin } from "../middlewares/validar-admin.js";
@@ -11,7 +12,9 @@ import { validarAdmin } from "../middlewares/validar-admin.js";
 const router = Router();
 
 router.get("/", validarJWT, validarAdmin, getUsers);
-router.post("/favorite", validarJWT, newFavorite);
+router.post("/favorite", validarJWT, validateFavorite, newFavorite);
+router.post("/exists", userAlreadyExists);
+
 router.get("/:userId", validarJWT, validarAdmin, getUserById);
 
 router.put("/:id", [validarJWT, checkRoleChange], updateUser);
@@ -19,5 +22,7 @@ router.put("/:id", [validarJWT, checkRoleChange], updateUser);
 router.patch("/password", [validarJWT, validateCurrentPassword], updatePassword);
 
 router.delete("/:id", [validarJWT, checkOwnAccount], deleteUser);
+
+
 
 export default router;

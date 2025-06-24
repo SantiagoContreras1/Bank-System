@@ -68,6 +68,18 @@ export const updateUser = async (req, res) => {
       user.password = await hash(password);
     }
 
+    if (data.monthlyIncome) {
+      const newCreditLimit = data.monthlyIncome * 3;
+      const account = await Account.findOne({ user: user._id });
+      
+      if (account) {
+        const currentRatio = account.availableCredit / account.creditLimit;
+        account.creditLimit = newCreditLimit;
+        account.availableCredit = newCreditLimit * currentRatio;
+        await account.save();
+      }
+    }
+
     Object.keys(data).forEach((key) => {
       user[key] = data[key];
     });
@@ -129,27 +141,34 @@ export const deleteUser = async (req, res) => {
 
 export const updatePassword = async (req, res = response) => {
   try {
-    const userId = req.user
-    console.log(req.user)
+    const userId = req.user._id;
     const { password } = req.body;
 
-    const hashedPassword = await hash(password);
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { password: hashedPassword },
-      { new: true }
-    );
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        msg: "Usuario no encontrado",
+      });
+    }
+
+    const hashedPassword = await hash(password);
+    user.password = hashedPassword;
+    await user.save();
 
     res.status(200).json({
       success: true,
-      msg: "User successfully updated",
-      user: updatedUser,
+      msg: "Contraseña actualizada exitosamente",
+      user: {
+        _id: user._id,
+        email: user.email
+      },
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      msg: "Error updating user",
+      msg: "Error al actualizar la contraseña",
       error: error.message,
     });
   }
@@ -157,41 +176,56 @@ export const updatePassword = async (req, res = response) => {
 
 export const newFavorite = async (req, res) => {
   try {
-    const { accountNo, alias } = req.body;
-    const user = await User.findById(req.user._id);
-    const account = await Account.findOne({ accountNo: accountNo });
+    const { alias } = req.body;
+    const { user, account } = req;
 
-    if(!account){
-      return res.status(404).json({
-        success: false,
-        msg: "Account not found",
-      });
-    }
-
-    const isAlreadyFavorite = user.favorites.some(favorite => 
-      favorite.account.toString() === account._id.toString()
-    );
-
-    if(isAlreadyFavorite) {
-      return res.status(400).json({
-        success: false,
-        msg: "Esta cuenta ya está en tus favoritos",
-      });
-    }
-  
     user.favorites.push({ account: account._id, alias });
     await user.save();
+    
     res.status(200).json({
       success: true,
-      msg: "Favorite added successfully",
+      msg: "Favorito agregado exitosamente",
       user,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      msg: "Error adding favorite",
+      msg: "Error al agregar favorito",
       error: error.message,
     });
   }
 }
 
+export const userAlreadyExists = async (req, res) => {
+  try {
+    const { email, dpi } = req.body;
+    const user = await User.findOne({ $or: [{ email }, { dpi }] });
+    
+    if (user) {
+      if (user.email === email) {
+        return res.status(400).json({
+          exists: true,
+          msg: "Ya existe una cuenta con este correo electrónico",
+        });
+      }
+      if (user.dpi === dpi) {
+        return res.status(400).json({
+          exists: true,
+          msg: "Ya existe una cuenta con este número de DPI",
+        });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      exists: false,
+      msg: "El usuario no existe",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      msg: "Error al verificar si el usuario ya existe",
+      error: error.message,
+    });
+  }
+}
