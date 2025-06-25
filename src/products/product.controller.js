@@ -1,4 +1,19 @@
 import Product from "./product.model.js";
+import cloudinary from "../../config/claudinary.js";
+
+const getPublicIdFromUrl = (url) => {
+  try {
+    const urlObj = new URL(url);
+    const pathParts = urlObj.pathname.split('/');
+    const uploadIndex = pathParts.indexOf('upload');
+    if (uploadIndex !== -1 && pathParts[uploadIndex + 2]) {
+      return pathParts[uploadIndex + 2].split('.')[0];
+    }
+  } catch (error) {
+    console.error('Error al extraer public_id:', error);
+  }
+  return null;
+};
 
 export const saveProduct = async (req, res) => {
   try {
@@ -9,8 +24,16 @@ export const saveProduct = async (req, res) => {
       enterprise,
       disscountPorcent,
       originalPrice,
-      img,
-    } = req.body;
+    } = req.body
+    console.log(req.body);
+
+    // Obtener la imagen subida
+    const image = req.file ? req.file.path : null;
+
+    const convertDiss = parseFloat(req.body.disscountPorcent);
+    const finalProfitPrice =
+      parseFloat(req.body.originalPrice) -
+      (parseFloat(req.body.originalPrice) * convertDiss) / 100;
 
     const product = new Product({
       name,
@@ -19,13 +42,11 @@ export const saveProduct = async (req, res) => {
       enterprise,
       disscountPorcent,
       originalPrice,
-      img,
+      img: image,
+      profitPrice: finalProfitPrice,
     });
 
-    const convertDiss = parseFloat(req.body.disscountPorcent);
-    const finalProfitPrice =
-      parseFloat(req.body.originalPrice) -
-      (parseFloat(req.body.originalPrice) * convertDiss) / 100;
+    
 
     await product.save();
 
@@ -95,44 +116,63 @@ export const updateProduct = async (req, res) => {
       enterprise,
       disscountPorcent,
       originalPrice,
-      img,
-      } = req.body;
+    } = req.body;
       
-      const product = await Product.findById(id);
-      if (!product) {
-          return res.status(404).json({
-              msg: "Product not found"
-          })
+    const product = await Product.findById(id);
+    if (!product) {
+        return res.status(404).json({
+            msg: "Product not found"
+        })
+    }
+
+    // Manejar la imagen existente
+    let imageUrl = product.img;
+    
+    // Si se sube una nueva imagen, eliminar la anterior de Cloudinary
+    if (req.file) {
+      // Eliminar imagen anterior si existe
+      if (product.img) {
+        const publicId = getPublicIdFromUrl(product.img);
+        if (publicId) {
+          try {
+            await cloudinary.uploader.destroy(publicId);
+          } catch (error) {
+            console.error(`Error eliminando imagen anterior ${publicId}:`, error);
+          }
+        }
       }
+      // Usar la nueva imagen
+      imageUrl = req.file.path;
+    }
+    const discountPercent = parseFloat(disscountPorcent);
+    const profitPrice = parseFloat(originalPrice) - (parseFloat(originalPrice) * discountPercent) / 100;
 
     const updatedProduct = await Product.findByIdAndUpdate(
-      product,
+      id,
       {
         name,
         description,
         type,
         enterprise,
         disscountPorcent,
+        profitPrice,
         originalPrice,
-        img,
+        img: imageUrl,
       },
       { new: true }
     );
 
-      
     const convertDiss = parseFloat(req.body.disscountPorcent);
     const finalProfitPrice =
       parseFloat(req.body.originalPrice) -
       (parseFloat(req.body.originalPrice) * convertDiss) / 100;
 
-    await updatedProduct.save()
-
     res.status(200).json({
       msg: "Product updated successfully",
-        updatedProduct: {
-            ...updatedProduct.toObject(),
-            disscountPorcent: convertDiss,
-            profitPrice: finalProfitPrice
+      updatedProduct: {
+          ...updatedProduct.toObject(),
+          disscountPorcent: convertDiss,
+          profitPrice: finalProfitPrice
       }
     });
   } catch (error) {
