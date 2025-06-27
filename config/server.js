@@ -11,6 +11,7 @@ import balanceRoutes from '../src/balance/balance.route.js';
 import transactionRoutes from '../src/transactions/transaction.routes.js';
 import twoFactorRoutes from '../src/2fa/2fa.routes.js';
 import productRoutes from '../src/products/product.routes.js';
+import statsRoutes from '../src/stats/stats.routes.js';
 import { hash } from "argon2";
 
 const middlewares = (app) => {
@@ -29,6 +30,7 @@ const routes = (app) => {
   app.use("/bankSystem/v1/transaction", transactionRoutes);
   app.use("/bankSystem/v1/2fa", twoFactorRoutes);
   app.use("/bankSystem/v1/products", productRoutes);
+  app.use("/bankSystem/v1/stats", statsRoutes);
 };
 
 const conectarDb = async () => {

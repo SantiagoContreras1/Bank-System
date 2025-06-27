@@ -6,6 +6,7 @@ import {
   searchProduct,
   updateProduct,
   deleteProduct,
+  getActiveProductsCount
 } from "./product.controller.js";
 import { validarJWT } from "../middlewares/validar-JWT.js";
 import { validarAdmin } from "../middlewares/validar-admin.js";
@@ -56,5 +57,7 @@ router.put(
 );
 
 router.delete("/delete/:id", [validarJWT, validarAdmin], deleteProduct);
+
+router.get("/active-count", getActiveProductsCount);
 
 export default router;

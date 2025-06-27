@@ -204,3 +204,12 @@ export const deleteProduct = async (req, res) => {
     });
   }
 };
+
+export const getActiveProductsCount = async (req, res) => {
+  try {
+    const count = await Product.countDocuments({ status: true });
+    res.json({ success: true, count });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error interno del servidor' });
+  }
+};
