@@ -62,7 +62,7 @@ export const canCreateTransaction = async (req, res, next) => {
         return;
     }
 
-    if (amount < 5 || amount > 2000) {
+    if (amount < 1 || amount > 2000) {
         return res.status(400).json({
             message: "Amount must be between Q.5.00 and Q.2000.00"
         });

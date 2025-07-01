@@ -13,6 +13,12 @@ router.post(
     validate2FA,
     createTransaction
 );
+router.post(
+    "/deposit",
+    validarJWT,
+    canCreateTransaction,
+    createTransaction
+)
 router.get(
     "/", 
     validarJWT,

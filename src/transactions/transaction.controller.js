@@ -168,10 +168,12 @@ export const getTransactionById = async (req, res) => {
 
 export const getTransactionsByAccountId = async (req, res) => {
     try {
+
+        const account = await Account.findOne({accountNo: req.params.id});
         const transactions = await Transaction.find({
             $or: [
-                { fromAccount: req.params.id },
-                { toAccount: req.params.id }
+                { fromAccount: account._id },
+                { toAccount: account._id }
             ],
             status: true
         }).sort({ createdAt: -1 });
