@@ -72,7 +72,7 @@ export const verify2FA = async (req, res) => {
       
       console.log('Código de prueba generado:', testToken);
       
-      return res.status(401).json({
+      return res.status(403).json({
         success: false,
         msg: "Código 2FA inválido o expirado",
         hint: "Asegúrate de que el código sea el más reciente y que la hora de tu dispositivo esté sincronizada"

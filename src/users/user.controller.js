@@ -196,24 +196,42 @@ export const newFavorite = async (req, res) => {
   }
 }
 
-export const userAlreadyExists = async (req, res) => {
+export const dpiAlreadyExists = async (req, res) => {
   try {
-    const { email, dpi } = req.body;
-    const user = await User.findOne({ $or: [{ email }, { dpi }] });
+    const dpi = req.query.dpi;
+    const user = await User.findOne({ dpi });
     
     if (user) {
-      if (user.email === email) {
-        return res.status(400).json({
-          exists: true,
-          msg: "Ya existe una cuenta con este correo electrónico",
-        });
-      }
-      if (user.dpi === dpi) {
-        return res.status(400).json({
+        return res.status(200).json({
           exists: true,
           msg: "Ya existe una cuenta con este número de DPI",
-        });
-      }
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      exists: false,
+      msg: "El usuario no existe",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      msg: "Error al verificar si el usuario ya existe",
+      error: error.message,
+    });
+  }
+}
+
+export const emailAlreadyExists = async (req, res) => {
+  try {
+    const email = req.query.email;
+    const user = await User.findOne({ email });
+
+    if (user) {
+      return res.status(200).json({
+        exists: true,
+        msg: "Ya existe una cuenta con este correo electrónico",
+      });
     }
 
     res.status(200).json({

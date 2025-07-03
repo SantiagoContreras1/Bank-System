@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { updateUser, updatePassword, getUsers, getUserById, deleteUser, newFavorite, userAlreadyExists } from "./user.controller.js";
+import { updateUser, updatePassword, getUsers, getUserById, deleteUser, newFavorite, dpiAlreadyExists, emailAlreadyExists } from "./user.controller.js";
 import {
   checkRoleChange,
   validateCurrentPassword,
@@ -13,7 +13,8 @@ const router = Router();
 
 router.get("/", validarJWT, validarAdmin, getUsers);
 router.post("/favorite", validarJWT, validateFavorite, newFavorite);
-router.post("/exists", userAlreadyExists);
+router.get("/exists/dpi", dpiAlreadyExists);
+router.get("/exists/email", emailAlreadyExists);
 
 router.get("/:userId", validarJWT, validarAdmin, getUserById);
 
