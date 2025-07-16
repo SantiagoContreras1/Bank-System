@@ -29,9 +29,9 @@ export const validate2FA = async (req, res, next) => {
     });
 
     if (!verified) {
-      return res.status(401).json({
+      return res.status(400).json({
         success: false,
-        msg: "Invalid 2FA code",
+        message: "Invalid 2FA code",
       });
     }
 

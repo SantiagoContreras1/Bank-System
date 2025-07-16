@@ -27,6 +27,7 @@ export const createTransaction = async (req, res) => {
                 });
             }
 
+            const paymentMethod = data.paymentMethod || 'balance'; // por defecto saldo
             const transaction = new Transaction({
                 type: data.type,
                 fromAccount: fromAccount._id,
@@ -36,32 +37,41 @@ export const createTransaction = async (req, res) => {
                 description: "Purchase of " + product.name + " " + product.type
             });
 
-            if (fromAccount.balance < Number(product.profitPrice)) {
+            if (paymentMethod === 'credit') {
                 if (fromAccount.availableCredit >= Number(product.profitPrice)) {
                     fromAccount.availableCredit -= Number(product.profitPrice);
                     fromAccount.transactions.push(transaction._id);
                     await fromAccount.save();
                     await transaction.save();
-                    
                     return res.status(201).json({
                         transaction,
-                        message: "Purchase created successfully using credit"
+                        message: "Compra realizada exitosamente usando crédito"
+                    });
+                } else {
+                    return res.status(400).json({
+                        message: "Crédito insuficiente para realizar la compra"
                     });
                 }
+            } else if (paymentMethod === 'balance') {
+                if (fromAccount.balance >= Number(product.profitPrice)) {
+                    fromAccount.balance -= Number(product.profitPrice);
+                    fromAccount.transactions.push(transaction._id);
+                    await fromAccount.save();
+                    await transaction.save();
+                    return res.status(201).json({
+                        transaction,
+                        message: "Compra realizada exitosamente con saldo"
+                    });
+                } else {
+                    return res.status(400).json({
+                        message: "Saldo insuficiente para realizar la compra"
+                    });
+                }
+            } else {
                 return res.status(400).json({
-                    message: "Insufficient balance and credit not available"
+                    message: "Método de pago no válido. Usa 'balance' o 'credit'"
                 });
             }
-
-            fromAccount.balance -= Number(product.profitPrice);
-            fromAccount.transactions.push(transaction._id);
-            await fromAccount.save();
-            await transaction.save();
-
-            return res.status(201).json({
-                transaction,
-                message: "Purchase created successfully"
-            });
         }
 
         if (data.type === 'TRANSFER') {
@@ -269,8 +279,6 @@ export const getChartData = async (req, res) => {
       startDate.setMonth(startDate.getMonth() - parseInt(months));
       startDate.setDate(1); // Comenzar desde el primer día del mes
       
-      console.log('Buscando transacciones desde:', startDate);
-      console.log('Para cuenta:', accountId);
       
       const transactions = await Transaction.find({
         $or: [

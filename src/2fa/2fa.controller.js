@@ -39,7 +39,7 @@ export const verify2FA = async (req, res) => {
       });
     }
 
-    // Limpiamos el código de posibles espacios o caracteres no deseados
+    
     const cleanCode = twoFactorCode.toString().trim();
     
     if (cleanCode.length !== 6) {
