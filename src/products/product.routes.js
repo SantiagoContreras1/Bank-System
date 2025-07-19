@@ -13,7 +13,6 @@ import { validarAdmin } from "../middlewares/validar-admin.js";
 import { uploadProductImages } from "../middlewares/uploadImages.js";
 import { validateDisscount } from "../middlewares/disscount-validator.js";
 import { parseJsonFields } from "../middlewares/parseJsonFields.js";
-import { validationProductPrice } from "../middlewares/price-product-validator.js";
 
 const router = Router();
 
@@ -27,7 +26,7 @@ router.post(
     validarAdmin,
     uploadProductImages,
     validateDisscount,
-    validationProductPrice,
+
     parseJsonFields([
       "disscountPorcent",
       "originalPrice",
@@ -46,7 +45,7 @@ router.put(
     validarJWT,
     validarAdmin,
     validateDisscount,
-    validationProductPrice,
+
     uploadProductImages,
     parseJsonFields([
       "disscountPorcent",

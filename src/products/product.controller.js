@@ -34,6 +34,19 @@ export const saveProduct = async (req, res) => {
     const finalProfitPrice =
       parseFloat(req.body.originalPrice) -
       (parseFloat(req.body.originalPrice) * convertDiss) / 100;
+    
+    if (isNaN(finalProfitPrice)) {
+      return res.status(400).json({
+        msg: "El precio de ganancia debe ser un número válido",
+      });
+    }
+
+    // Vlialidar que el profitPrice no sea mayor a 2000
+    if (finalProfitPrice > 2000) {
+      return res.status(400).json({
+        msg: "El precio no puede ser mayor a 2000",
+      });
+    }
 
     const product = new Product({
       name,
