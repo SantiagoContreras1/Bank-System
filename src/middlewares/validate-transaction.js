@@ -62,11 +62,22 @@ export const canCreateTransaction = async (req, res, next) => {
         return;
     }
 
-    if (amount < 1 || amount > 2000) {
+    if (amount < 1) {
         return res.status(400).json({
-            message: "Amount must be between Q.5.00 and Q.2000.00"
+            message: "El monto debe ser mayor o igual a Q.1.00"
         });
-    
+    }
+
+    if (type === 'DEPOSIT' && amount > 10000) {
+        return res.status(400).json({
+            message: "El monto máximo para depósitos es Q.10,000.00"
+        });
+    }
+
+    if (type === 'TRANSFER' && amount > 2000) {
+        return res.status(400).json({
+            message: "El monto máximo para transferencias es Q.2,000.00"
+        });
     }
 
     const fromUser = await User.findById(req.user._id);
@@ -87,7 +98,7 @@ export const canCreateTransaction = async (req, res, next) => {
 
     const transactionOfDay = sumarTransaccionesDelDia(fromAccount.transactions);
 
-    if (transactionOfDay + amount > 10000) {
+    if (type === 'TRANSFER' && (transactionOfDay + amount > 10000)) {
         return res.status(400).json({
             message: "You can only transfer a maximum of Q.10,000.00 per day."
         });

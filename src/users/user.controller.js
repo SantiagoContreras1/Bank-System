@@ -247,3 +247,24 @@ export const emailAlreadyExists = async (req, res) => {
     });
   }
 }
+
+export const getCurrentUser = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        msg: "No autenticado"
+      });
+    }
+    res.status(200).json({
+      success: true,
+      user: req.user
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      msg: "Error al obtener el usuario actual",
+      error: error.message
+    });
+  }
+}

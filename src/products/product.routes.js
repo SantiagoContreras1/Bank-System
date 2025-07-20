@@ -25,8 +25,6 @@ router.post(
     validarJWT,
     validarAdmin,
     uploadProductImages,
-    validateDisscount,
-
     parseJsonFields([
       "disscountPorcent",
       "originalPrice",
@@ -35,6 +33,7 @@ router.post(
       "type",
       "enterprise",
     ]),
+    validateDisscount,
   ],
   saveProduct
 );
@@ -44,8 +43,6 @@ router.put(
   [
     validarJWT,
     validarAdmin,
-    validateDisscount,
-
     uploadProductImages,
     parseJsonFields([
       "disscountPorcent",
@@ -55,6 +52,7 @@ router.put(
       "type",
       "enterprise",
     ]),
+    validateDisscount,
   ],
   updateProduct
 );

@@ -25,15 +25,30 @@ export const saveProduct = async (req, res) => {
       disscountPorcent,
       originalPrice,
     } = req.body
-    console.log(req.body);
+    console.log("BODY:", req.body);
+
+    // Validación robusta de los campos numéricos
+    if (
+      typeof disscountPorcent === "undefined" ||
+      typeof originalPrice === "undefined" ||
+      disscountPorcent === "" ||
+      originalPrice === "" ||
+      isNaN(parseFloat(disscountPorcent)) ||
+      isNaN(parseFloat(originalPrice))
+    ) {
+      return res.status(400).json({
+        success: false,
+        msg: "Discount and original price must be numbers"
+      });
+    }
 
     // Obtener la imagen subida
     const image = req.file ? req.file.path : null;
 
-    const convertDiss = parseFloat(req.body.disscountPorcent);
+    const convertDiss = parseFloat(disscountPorcent);
     const finalProfitPrice =
-      parseFloat(req.body.originalPrice) -
-      (parseFloat(req.body.originalPrice) * convertDiss) / 100;
+      parseFloat(originalPrice) -
+      (parseFloat(originalPrice) * convertDiss) / 100;
     
     if (isNaN(finalProfitPrice)) {
       return res.status(400).json({
@@ -130,6 +145,21 @@ export const updateProduct = async (req, res) => {
       disscountPorcent,
       originalPrice,
     } = req.body;
+    
+    // Validación robusta de los campos numéricos
+    if (
+      typeof disscountPorcent === "undefined" ||
+      typeof originalPrice === "undefined" ||
+      disscountPorcent === "" ||
+      originalPrice === "" ||
+      isNaN(parseFloat(disscountPorcent)) ||
+      isNaN(parseFloat(originalPrice))
+    ) {
+      return res.status(400).json({
+        success: false,
+        msg: "Discount and original price must be numbers"
+      });
+    }
       
     const product = await Product.findById(id);
     if (!product) {
@@ -175,10 +205,10 @@ export const updateProduct = async (req, res) => {
       { new: true }
     );
 
-    const convertDiss = parseFloat(req.body.disscountPorcent);
+    const convertDiss = parseFloat(disscountPorcent);
     const finalProfitPrice =
-      parseFloat(req.body.originalPrice) -
-      (parseFloat(req.body.originalPrice) * convertDiss) / 100;
+      parseFloat(originalPrice) -
+      (parseFloat(originalPrice) * convertDiss) / 100;
 
     res.status(200).json({
       msg: "Product updated successfully",

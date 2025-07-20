@@ -42,7 +42,6 @@ const TransactionSchema = new Schema(
       type: Number,
       required: true,
       min: 1,
-      max: 2000,
     },
     description: {
       type: String,

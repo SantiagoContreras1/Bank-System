@@ -150,3 +150,27 @@ export const searchAccount = async (req, res) => {
     });
   }
 };
+
+export const getAccountByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const account = await Account.findOne({ user: userId });
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        msg: "Account not found",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      msg: "Account found",
+      account,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      msg: "Error getting account",
+      error: error.message,
+    });
+  }
+};
