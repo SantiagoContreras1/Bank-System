@@ -18,7 +18,7 @@ const AccountSchema = new Schema(
       }
     },
     balance: {
-      type: Number,
+      type: NumberLong,
       required: true, 
       default: 0.00
     },

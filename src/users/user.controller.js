@@ -5,11 +5,10 @@ import { response, request } from "express";
 
 export const getUsers = async (req = request, res = response) => {
   try {
-    const query = { status: true };
 
     const [total, users] = await Promise.all([
-      User.countDocuments(query),
-      User.find(query)
+      User.countDocuments({}),
+      User.find({}) 
     ]);
 
     res.status(200).json({
@@ -110,7 +109,7 @@ export const deleteUser = async (req, res) => {
 
     const updatedUser = await User.findByIdAndUpdate(
       id,
-      { estado: false },
+      { status: false },
       { new: true }
     );
 
@@ -127,7 +126,7 @@ export const deleteUser = async (req, res) => {
       msg: "User deactivated successfully",
       user: {
         _id: updatedUser._id,
-        estado: updatedUser.estado,
+        status: updatedUser.status,
       },
     });
   } catch (error) {
@@ -199,7 +198,7 @@ export const newFavorite = async (req, res) => {
 export const dpiAlreadyExists = async (req, res) => {
   try {
     const dpi = req.query.dpi;
-    const user = await User.findOne({ dpi });
+    const user = await User.findOne({ dpi: dpi , status: true });
     
     if (user) {
         return res.status(200).json({
@@ -225,7 +224,7 @@ export const dpiAlreadyExists = async (req, res) => {
 export const emailAlreadyExists = async (req, res) => {
   try {
     const email = req.query.email;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email, status: true });
 
     if (user) {
       return res.status(200).json({

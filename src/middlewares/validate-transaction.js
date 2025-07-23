@@ -98,9 +98,10 @@ export const canCreateTransaction = async (req, res, next) => {
 
     const transactionOfDay = sumarTransaccionesDelDia(fromAccount.transactions);
 
-    if (type === 'TRANSFER' && (transactionOfDay + amount > 10000)) {
+    
+    if ((type === 'TRANSFER' || type === 'PURCHASE') && (transactionOfDay + amount > 10000)) {
         return res.status(400).json({
-            message: "You can only transfer a maximum of Q.10,000.00 per day."
+            message: "Solo puedes transferir y comprar un máximo de Q.10,000.00 por día."
         });
     }
 
