@@ -214,7 +214,8 @@ export const updateTransaction = async (req, res) => {
         if (transaction.type === 'DEPOSIT') {
             toAccount = await Account.findById(transaction.toAccount);
             if (toAccount) {
-                toAccount.balance = toAccount.balance - montoAnterior + nuevoMonto;
+                let nuevoSaldo = toAccount.balance - montoAnterior + nuevoMonto;
+                toAccount.balance = nuevoSaldo < 0 ? 0 : nuevoSaldo;
                 await toAccount.save();
             }
         }
@@ -245,7 +246,11 @@ export const cancelTransaction = async (req, res) => {
         if (transaction.type === 'DEPOSIT' && transaction.status === true) {
             const toAccount = await Account.findById(transaction.toAccount);
             if (toAccount) {
-                toAccount.balance -= transaction.amount;
+                if (toAccount.balance < transaction.amount) {
+                    toAccount.balance = 0;
+                } else {
+                    toAccount.balance -= transaction.amount;
+                }
                 await toAccount.save();
             }
         }
