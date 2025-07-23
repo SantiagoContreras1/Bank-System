@@ -203,20 +203,32 @@ export const getTransactionsByAccountId = async (req, res) => {
 export const updateTransaction = async (req, res) => {
     try {
         const transaction = await Transaction.findById(req.params.id);
-
+        if (!transaction) {
+            return res.status(404).json({ message: "Transacción no encontrada" });
+        }
         const data = req.body;
-        
-        transaction.amount = Number(data.amount) || transaction.amount;
+        const nuevoMonto = Number(data.amount);
+        const montoAnterior = transaction.amount;
+        let fromAccount, toAccount;
 
+        if (transaction.type === 'DEPOSIT') {
+            toAccount = await Account.findById(transaction.toAccount);
+            if (toAccount) {
+                toAccount.balance = toAccount.balance - montoAnterior + nuevoMonto;
+                await toAccount.save();
+            }
+        }
+
+        transaction.amount = nuevoMonto || transaction.amount;
         await transaction.save();
 
         res.status(200).json({
             transaction, 
-            message: "Transaction updated successfully"
+            message: "Transacción actualizada y saldo ajustado correctamente"
         });
     } catch (error) {
         res.status(500).json({ 
-            message: "Error updating transaction",
+            message: "Error al actualizar la transacción",
             error: error.message 
         });
     }
@@ -230,7 +242,6 @@ export const cancelTransaction = async (req, res) => {
             return res.status(404).json({ message: "Transacción no encontrada" });
         }
 
-        // Solo revertir si es un depósito y está activa
         if (transaction.type === 'DEPOSIT' && transaction.status === true) {
             const toAccount = await Account.findById(transaction.toAccount);
             if (toAccount) {
