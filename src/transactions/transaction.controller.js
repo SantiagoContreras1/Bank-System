@@ -226,16 +226,29 @@ export const cancelTransaction = async (req, res) => {
     try {
         const transaction = await Transaction.findById(req.params.id);
 
+        if (!transaction) {
+            return res.status(404).json({ message: "Transacción no encontrada" });
+        }
+
+        // Solo revertir si es un depósito y está activa
+        if (transaction.type === 'DEPOSIT' && transaction.status === true) {
+            const toAccount = await Account.findById(transaction.toAccount);
+            if (toAccount) {
+                toAccount.balance -= transaction.amount;
+                await toAccount.save();
+            }
+        }
+
         transaction.status = false;
         await transaction.save();
 
         res.status(200).json({
             transaction, 
-            message: "Transaction cancelled successfully"
+            message: "Transacción cancelada y saldo revertido correctamente"
         });
     } catch (error) {
         res.status(500).json({ 
-            message: "Error cancelling transaction",
+            message: "Error al cancelar la transacción",
             error: error.message 
         });
     }
